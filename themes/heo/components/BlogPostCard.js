@@ -1,5 +1,5 @@
 import LazyImage from '@/components/LazyImage'
-import NotionIcon from '@/components/NotionIcon'
+import NotionIcon from './NotionIcon'
 import { siteConfig } from '@/lib/config'
 import Link from 'next/link'
 import CONFIG from '../config'
