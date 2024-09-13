@@ -59,10 +59,12 @@ nav {
   .sticky-nav-full {
     @apply max-w-full border-b border-opacity-50 border-gray-200 dark:border-gray-600 dark:border-opacity-50;
   }
+
   .header-name {
     display: block;
     transition: all 0.5s cubic-bezier(0.4, 0, 0, 1);
   }
+
   .sticky-nav-full .header-name {
     @apply dark:text-gray-300 text-gray-600;
   }
@@ -97,7 +99,8 @@ nav {
 .scroll-hidden {
   -ms-overflow-style: none;
   overflow: -moz-scrollbars-none;
-  scrollbar-width: none; /* firefox */
+  scrollbar-width: none;
+  /* firefox */
 }
 
 .scroll-hidden::-webkit-scrollbar {
@@ -119,7 +122,7 @@ nav {
   text-shadow: 0.1em 0.1em 0.2em black;
 }
 
-.notion-code-copy-button > svg {
+.notion-code-copy-button>svg {
   pointer-events: none;
 }
 
@@ -206,7 +209,7 @@ nav {
 /* .webmention-counts .counts > span {
   margin-right: .8rem;
 } */
-.webmention-counts .counts > span:not(:last-child):after {
+.webmention-counts .counts>span:not(:last-child):after {
   content: ' • ';
 }
 
@@ -261,8 +264,10 @@ a.avatar-wrapper {
 }
 
 .writing-vertical {
-  writing-mode: vertical-rl; /* 竖向排列从右向左 */
-  text-orientation: upright; /* 文字方向正常 */
+  writing-mode: vertical-rl;
+  /* 竖向排列从右向左 */
+  text-orientation: upright;
+  /* 文字方向正常 */
 }
 
 /* Chatbase 在移动端禁止遮挡 */
@@ -276,3 +281,180 @@ a.avatar-wrapper {
 img {
   display: unset;
 }
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 默认样式，应用于白天模式 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-input.el-textarea>textarea {
+  background-color: #f7f7f9;
+  /* 修改默认背景颜色 */
+  height: 20rem;
+  /* 设置默认高度 */
+  border: 1px solid #ddd;
+  /* 默认边框颜色 */
+  padding: 1rem;
+  border-radius: 0.8rem;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  /* 加入过渡效果 */
+}
+
+/* 当 textarea 获得焦点时，增加绿色描边 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-input.el-textarea>textarea:focus {
+  outline: none;
+  /* 移除默认 outline */
+  border-color: #5697ff;
+  /* 增加绿色描边 */
+  background-color: #f7f7f9;
+  /* 保持相同背景色 */
+}
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input {
+  order: 2;
+  /* 将 meta-input 移动到 textarea 的下方 */
+  padding-top: 1%;
+}
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-input.el-textarea {
+  order: 1;
+  /* textarea 保持在最上方 */
+}
+
+#twikoo>div.tk-comments>div.tk-submit>div.tk-row.actions {
+  order: 3;
+  /* actions 保持在最后 */
+}
+
+/* 输入框名字 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(1) {
+  background-color: #f7f7f9;
+  /* 修改默认背景颜色 */
+  border: 1px solid #ddd;
+  /* 默认边框颜色 */
+  border-radius: 0.8rem;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  /* 加入过渡效果 */
+}
+
+/* 当子级 input 元素获得焦点时，父级 div 触发描边 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(1):focus-within {
+  outline: none;
+  /* 移除默认 outline */
+  border-color: #5697ff;
+  /* 增加绿色描边 */
+}
+
+/* 输入框名字 输入框*/
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(1)>input {
+  border: none;
+  border-radius: 0.8rem;
+
+}
+
+/* 输入框名字 左*/
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(1)>div {
+  border: none;
+  border-top-left-radius: 0.8rem;
+  /* 左上角圆角 */
+  border-bottom-left-radius: 0.8rem;
+  /* 左下角圆角 */
+  background-color: #fff;
+
+}
+
+
+/* 第二个也就是email */
+/* 输入框名字 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(2) {
+  background-color: #f7f7f9;
+  /* 修改默认背景颜色 */
+  border: 1px solid #ddd;
+  /* 默认边框颜色 */
+  border-radius: 0.8rem;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  /* 加入过渡效果 */
+}
+
+/* 当子级 input 元素获得焦点时，父级 div 触发描边 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(2):focus-within {
+  outline: none;
+  /* 移除默认 outline */
+  border-color: #5697ff;
+  /* 增加绿色描边 */
+}
+
+/* 输入框名字 输入框*/
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(2)>input {
+  border: none;
+  border-radius: 0.8rem;
+
+}
+
+/* 输入框名字 左*/
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(2)>div {
+  border: none;
+  border-top-left-radius: 0.8rem;
+  /* 左上角圆角 */
+  border-bottom-left-radius: 0.8rem;
+  /* 左下角圆角 */
+  background-color: #fff;
+
+}
+
+
+/* 第三个也就是网站 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(3) {
+  background-color: #f7f7f9;
+  /* 修改默认背景颜色 */
+  border: 1px solid #ddd;
+  /* 默认边框颜色 */
+  border-radius: 0.8rem;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  /* 加入过渡效果 */
+}
+
+/* 当子级 input 元素获得焦点时，父级 div 触发描边 */
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(3):focus-within {
+  outline: none;
+  /* 移除默认 outline */
+  border-color: #5697ff;
+  /* 增加绿色描边 */
+}
+
+/* 输入框名字 输入框*/
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(3)>input {
+  border: none;
+  border-radius: 0.8rem;
+
+}
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(3)>input {
+  border: none;
+  border-radius: 0.8rem;
+
+}
+/* 输入框名字 左*/
+
+#twikoo>div.tk-comments>div.tk-submit>div:nth-child(1)>div.tk-col>div.tk-meta-input>div:nth-child(3)>div {
+  border: none;
+  border-top-left-radius: 0.8rem;
+  /* 左上角圆角 */
+  border-bottom-left-radius: 0.8rem;
+  /* 左下角圆角 */
+  background-color: #fff;
+  
+
+}
+
+#twikoo > div.tk-comments > div.tk-comments-container{
+  padding-left: 3rem;
+}
+/* 确保 textarea 父容器设置为相对定位 */
+#twikoo > div.tk-comments > div.tk-submit > div:nth-child(1) > div.tk-col {
+  position: relative;
+}
+
+/* 将图标移动到 textarea 的左下角 */
