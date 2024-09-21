@@ -1,53 +1,78 @@
 import { ArrowPath, ChevronLeft, ChevronRight } from '@/components/HeroIcons'
-import LazyImage from '@/components/LazyImage'
+import Link from 'next/link';
 import { compressImage } from '@/lib/notion/mapImage'
 import { Dialog, Transition } from '@headlessui/react'
-import Link from 'next/link'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useRef, useState, useEffect } from 'react'
 import { usePlogGlobal } from '..'
 
 /**
  * 弹出框
  */
 export default function Modal(props) {
-  const { showModal, setShowModal, modalContent, setModalContent } =
-    usePlogGlobal()
+  const { showModal, setShowModal, modalContent, setModalContent } = usePlogGlobal()
   const { siteInfo, posts } = props
   const cancelButtonRef = useRef(null)
 
   // 添加状态来存储上一张图片的内容
   const [prevModalContent, setPrevModalContent] = useState(null)
 
-  // 添加loading状态
+  // 添加 loading 状态
   const [loading, setLoading] = useState(true)
 
-  // 在图片加载完成时设置loading为false
-  function handleImageLoad() {
-    setLoading(false)
-  }
+  // 添加图片尺寸状态
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
+
+  // 控制图片和文字显示状态，用于控制它们的淡入淡出效果
+  const [showContent, setShowContent] = useState(false)
+
+  // 控制纯色层显示的状态
+  const [showColorLayer, setShowColorLayer] = useState(true) // 初次加载时默认显示
+
+  // 图片加载完成状态，避免重复加载
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  // 计算容器的宽高，并添加过渡动画
+  const [containerStyle, setContainerStyle] = useState({ width: 'auto', height: 'auto' })
+
+  // 读取环境变量，决定图片是否为可点击链接
+  const enableImageLink = process.env.NEXT_PUBLIC_ENABLE_IMAGE_LINK === 'true'
 
   // 关闭弹窗
   function handleClose() {
     setShowModal(false)
+    // 在关闭弹窗时，不需要立即重置 imageDimensions
+    // 因为下次打开弹窗时会根据新图片重新设置
     setLoading(true)
+    setShowContent(false)
+    setShowColorLayer(true)
+    setImageLoaded(false)
   }
 
-  // 修改当前显示的遮罩内容
+  // 切换图片时更新 prevModalContent
+  function changeImage(newContent) {
+    setShowContent(false) // 先隐藏图片和文字
+    setShowColorLayer(true) // 显示纯色层
+    setPrevModalContent(modalContent) // 保存当前内容作为上一张图片的内容
+    setModalContent(newContent) // 切换到新的图片
+    setLoading(true) // 开始加载新图片
+    setImageLoaded(false) // 重置图片加载状态
+  }
+
+  // 上一张图片
   function prev() {
-    setLoading(true)
     const index = posts?.findIndex(post => post.slug === modalContent.slug)
     if (index === 0) {
-      setModalContent(posts[posts.length - 1])
+      changeImage(posts[posts.length - 1])
     } else {
-      setModalContent(posts[index - 1])
+      changeImage(posts[index - 1])
     }
   }
-  // 下一个
+
+  // 下一张图片
   const next = () => {
-    setLoading(true)
     const index = posts.findIndex(post => post.slug === modalContent.slug)
     if (index === posts.length - 1) {
-      setModalContent(posts[0])
+      changeImage(posts[0])
     } else {
       changeImage(posts[index + 1])
     }
@@ -168,48 +193,66 @@ export default function Modal(props) {
             <Transition.Child
               as={Fragment}
               enter='ease-out duration-300'
-              enterFrom='opacity-0 translate-y-4 scale-50 w-0'
-              enterTo={'opacity-100 translate-y-0 max-w-screen'}
+              enterFrom='opacity-0 translate-y-4 scale-50'
+              enterTo='opacity-100 translate-y-0 scale-100'
               leave='ease-in duration-200'
-              leaveFrom='opacity-100 translate-y-0 scale-100  max-w-screen'
-              leaveTo='opacity-0 translate-y-4 scale-50 w-0'>
-              <Dialog.Panel className='group relative transform overflow-hidden rounded-xl text-left shadow-xl transition-all '>
-                {/* 添加onLoad事件处理函数 */}
-                {/* 添加loading状态 */}
-                {/* <div
-                  className={`bg-hexo-black-gray w-32 h-32 flex justify-center items-center `}> */}
+              leaveFrom='opacity-100 translate-y-0 scale-100'
+              leaveTo='opacity-0 translate-y-4 scale-50'>
+              <Dialog.Panel
+                className='group relative transform overflow-hidden rounded-xl text-left shadow-xl transition-all'
+                style={containerStyle}>
+                {/* 加载中的动画效果 */}
+                {loading && (
+                  <div className='absolute right-0 bottom-0 m-4'>
+                    <ArrowPath
+                      className='w-10 h-10 animate-spin text-gray-200'
+                    />
+                  </div>
+                )}
+
+                {/* 纯色层部分 */}
+                {showColorLayer && (
+                  <div
+                    className="absolute inset-0 bg-gray-800 z-10 transition-opacity duration-500"
+                  ></div>
+                )}
+
+                {/* 图片部分 */}
                 <div
-                  className={`absolute right-0 bottom-0 m-4 ${loading ? '' : 'hidden'}`}>
-                  <ArrowPath
-                    className={`w-10 h-10 animate-spin text-gray-200`}
-                  />
+                  className='relative w-full h-full flex items-center justify-center overflow-hidden'
+                  style={{ backgroundColor: '#333' }} // 深灰色背景
+                >
+                  {/* 当前图片 */}
+                  {!loading && (
+                    <img
+                      src={bigImage}
+                      className={`absolute w-full h-full object-contain transition-opacity duration-1000 ${
+                        showContent ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      alt={modalContent?.title || '图片'}
+                      onError={() => {
+                        // 处理图片加载错误时的显示逻辑
+                        setShowColorLayer(false)
+                        setShowContent(true)
+                      }}
+                    />
+                  )}
                 </div>
 
-                {/* </div> */}
-
-                <Link href={modalContent?.href}>
-                  <LazyImage
-                    onLoad={handleImageLoad}
-                    placeholderSrc={thumbnail}
-                    src={bigImage}
-                    ref={imgRef}
-                    className={`w-full select-none max-w-7xl max-h-[90vh] shadow-xl  animate__animated animate__fadeIn'`}
-                  />
-                </Link>
-
+                {/* 图片下方的文字和导航按钮 */}
                 <>
-                  <div className='absolute bottom-0 left-0 m-4 z-20'>
+                  <div className={`absolute bottom-0 left-0 m-4 z-20 transition-opacity duration-1000 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
                     <div className='flex'>
                       <h2
                         style={{ textShadow: '0.1em 0.1em 0.2em black' }}
-                        className='text-2xl md:text-5xl text-white mb-4 px-2 py-1 rounded-lg'>
+                        className='text-xl md:text-2xl text-white mb-4 px-2 py-1 rounded-lg'>
                         {modalContent?.title}
                       </h2>
                     </div>
                     <div
                       style={{ textShadow: '0.1em 0.1em 0.2em black' }}
                       className={
-                        'line-clamp-3 md:line-clamp-none overflow-hidden cursor-pointer text-gray-50 rounded-lg m-2'
+                        'text-sm md:text-base line-clamp-3 md:line-clamp-none overflow-hidden cursor-pointer text-gray-50 rounded-lg m-2'
                       }>
                       {modalContent?.summary}
                     </div>
@@ -225,24 +268,17 @@ export default function Modal(props) {
                     )}
                   </div>
 
-                  {/* 卡片的阴影遮罩，为了凸显图片上的文字 */}
-                  <div className='h-1/2 w-full absolute left-0 bottom-0'>
-                    <div className='h-full w-full absolute opacity-80 group-hover:opacity-100 transition-all duration-1000 bg-gradient-to-b from-transparent to-black'></div>
-                  </div>
-
-                  {/* <div className="z-10 absolute hover:opacity-50 opacity-0 duration-200 transition-opacity w-full top-0 left-0 px-4 h-full items-center flex justify-between"> */}
-
+                  {/* 导航按钮 */}
                   <div
                     onClick={prev}
-                    className='z-10 absolute left-0 top-1/2 -mt-12 group-hover:opacity-50 opacity-0 duration-200 transition-opacity'>
-                    <ChevronLeft className='cursor-pointer w-24 h-32 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
+                    className='z-10 absolute left-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'>
+                    <ChevronLeft className='cursor-pointer w-12 h-16 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
                   </div>
                   <div
                     onClick={next}
-                    className='z-10 absolute right-0 top-1/2 -mt-12 group-hover:opacity-50 opacity-0 duration-200 transition-opacity'>
-                    <ChevronRight className='cursor-pointer w-24 h-32 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
+                    className='z-10 absolute right-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'>
+                    <ChevronRight className='cursor-pointer w-12 h-16 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
                   </div>
-                  {/* </div> */}
                 </>
               </Dialog.Panel>
             </Transition.Child>
