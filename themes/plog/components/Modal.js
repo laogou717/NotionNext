@@ -14,15 +14,9 @@ export default function Modal(props) {
     usePlogGlobal()
   const { siteInfo, posts } = props
   const cancelButtonRef = useRef(null)
-  const thumbnail =
-    modalContent?.pageCoverThumbnail || siteInfo?.pageCoverThumbnail
-  const bigImage = compressImage(
-    modalContent?.pageCover || siteInfo?.pageCover,
-    1200,
-    85,
-    'webp'
-  )
-  const imgRef = useRef(null)
+
+  // 添加状态来存储上一张图片的内容
+  const [prevModalContent, setPrevModalContent] = useState(null)
 
   // 添加loading状态
   const [loading, setLoading] = useState(true)
