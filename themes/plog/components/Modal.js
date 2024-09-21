@@ -49,9 +49,97 @@ export default function Modal(props) {
     if (index === posts.length - 1) {
       setModalContent(posts[0])
     } else {
-      setModalContent(posts[index + 1])
+      changeImage(posts[index + 1])
     }
   }
+
+  // 获取当前和上一张图片的大图
+  const bigImage = compressImage(
+    modalContent?.pageCover || siteInfo?.pageCover,
+    1200,
+    85,
+    'webp'
+  )
+
+  // 当 modalContent 或 showModal 变化时，预加载新图片并获取尺寸
+  useEffect(() => {
+    let isCurrent = true // 防止竞态条件
+
+    // 当弹窗打开且有内容时，开始加载图片
+    if (showModal && modalContent) {
+      setLoading(true)
+      setShowContent(false)
+      setShowColorLayer(true)
+      setImageLoaded(false)
+
+      if (bigImage) {
+        const img = new Image()
+        img.src = bigImage
+        img.onload = () => {
+          if (isCurrent) {
+            setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight })
+            setLoading(false)
+            setImageLoaded(true) // 标记图片加载完成
+
+            // 当图片加载完成后，先调整容器大小，再显示图片和文字
+            setShowColorLayer(true) // 显示纯色层
+            setTimeout(() => {
+              setShowColorLayer(false) // 隐藏纯色层
+              setShowContent(true) // 显示图片和文字
+            }, 300) // 保证容器调整好尺寸后才显示内容
+          }
+        }
+
+        img.onerror = () => {
+          if (isCurrent) {
+            // 处理图片加载错误
+            console.error('图片加载失败:', bigImage)
+            setLoading(false)
+            setShowColorLayer(false)
+            setShowContent(true)
+          }
+        }
+      }
+    }
+
+    return () => {
+      isCurrent = false // 清理标志
+    }
+  }, [showModal, modalContent, bigImage])
+
+  // 当 imageDimensions 变化时，计算容器的样式
+  useEffect(() => {
+    if (imageDimensions.width && imageDimensions.height) {
+      const maxContainerWidth = window.innerWidth * 0.9 // 最大宽度为窗口宽度的90%
+      const maxContainerHeight = window.innerHeight * 0.9 // 最大高度为窗口高度的90%
+
+      let containerWidth = imageDimensions.width
+      let containerHeight = imageDimensions.height
+
+      // 按比例缩放，确保容器不超过最大尺寸
+      const widthRatio = containerWidth / maxContainerWidth
+      const heightRatio = containerHeight / maxContainerHeight
+      if (widthRatio > 1 || heightRatio > 1) {
+        const maxRatio = Math.max(widthRatio, heightRatio)
+        containerWidth = containerWidth / maxRatio
+        containerHeight = containerHeight / maxRatio
+      }
+
+      // 设置容器样式，添加过渡动画
+      setContainerStyle({
+        width: containerWidth + 'px',
+        height: containerHeight + 'px',
+        transition: 'width 0.5s, height 0.5s',
+      })
+    } else {
+      // 如果没有图片尺寸，则设置为默认尺寸
+      setContainerStyle({
+        width: 'auto',
+        height: 'auto',
+        transition: 'width 0.5s, height 0.5s',
+      })
+    }
+  }, [imageDimensions])
 
   return (
     <Transition.Root show={showModal} as={Fragment}>
