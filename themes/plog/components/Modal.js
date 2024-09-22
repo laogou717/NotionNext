@@ -1,15 +1,16 @@
 import { ArrowPath, ChevronLeft, ChevronRight } from '@/components/HeroIcons'
-import Link from 'next/link';
+import Link from 'next/link'
 import { compressImage } from '@/lib/notion/mapImage'
 import { Dialog, Transition } from '@headlessui/react'
 import { Fragment, useRef, useState, useEffect } from 'react'
 import { usePlogGlobal } from '..'
 
 /**
- * 弹出框
+ * 弹出框组件
  */
 export default function Modal(props) {
-  const { showModal, setShowModal, modalContent, setModalContent } = usePlogGlobal()
+  const { showModal, setShowModal, modalContent, setModalContent } =
+    usePlogGlobal()
   const { siteInfo, posts } = props
   const cancelButtonRef = useRef(null)
 
@@ -20,7 +21,10 @@ export default function Modal(props) {
   const [loading, setLoading] = useState(true)
 
   // 添加图片尺寸状态
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  })
 
   // 控制图片和文字显示状态，用于控制它们的淡入淡出效果
   const [showContent, setShowContent] = useState(false)
@@ -32,16 +36,18 @@ export default function Modal(props) {
   const [imageLoaded, setImageLoaded] = useState(false)
 
   // 计算容器的宽高，并添加过渡动画
-  const [containerStyle, setContainerStyle] = useState({ width: 'auto', height: 'auto' })
+  const [containerStyle, setContainerStyle] = useState({
+    width: 'auto',
+    height: 'auto',
+  })
 
-  // 读取环境变量，决定图片是否为可点击链接
-  const enableImageLink = process.env.NEXT_PUBLIC_ENABLE_IMAGE_LINK === 'true'
+  // 读取环境变量，决定图片是否为不可点击的 <div>
+  const disableImageLink =
+    process.env.NEXT_PUBLIC_ENABLE_IMAGE_LINK === 'false'
 
   // 关闭弹窗
   function handleClose() {
     setShowModal(false)
-    // 在关闭弹窗时，不需要立即重置 imageDimensions
-    // 因为下次打开弹窗时会根据新图片重新设置
     setLoading(true)
     setShowContent(false)
     setShowColorLayer(true)
@@ -60,7 +66,7 @@ export default function Modal(props) {
 
   // 上一张图片
   function prev() {
-    const index = posts?.findIndex(post => post.slug === modalContent.slug)
+    const index = posts?.findIndex((post) => post.slug === modalContent.slug)
     if (index === 0) {
       changeImage(posts[posts.length - 1])
     } else {
@@ -70,7 +76,7 @@ export default function Modal(props) {
 
   // 下一张图片
   const next = () => {
-    const index = posts.findIndex(post => post.slug === modalContent.slug)
+    const index = posts.findIndex((post) => post.slug === modalContent.slug)
     if (index === posts.length - 1) {
       changeImage(posts[0])
     } else {
@@ -90,7 +96,6 @@ export default function Modal(props) {
   useEffect(() => {
     let isCurrent = true // 防止竞态条件
 
-    // 当弹窗打开且有内容时，开始加载图片
     if (showModal && modalContent) {
       setLoading(true)
       setShowContent(false)
@@ -102,7 +107,10 @@ export default function Modal(props) {
         img.src = bigImage
         img.onload = () => {
           if (isCurrent) {
-            setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight })
+            setImageDimensions({
+              width: img.naturalWidth,
+              height: img.naturalHeight,
+            })
             setLoading(false)
             setImageLoaded(true) // 标记图片加载完成
 
@@ -155,6 +163,7 @@ export default function Modal(props) {
         width: containerWidth + 'px',
         height: containerHeight + 'px',
         transition: 'width 0.5s, height 0.5s',
+        overflow: 'hidden', // 确保图片不会溢出容器
       })
     } else {
       // 如果没有图片尺寸，则设置为默认尺寸
@@ -162,9 +171,32 @@ export default function Modal(props) {
         width: 'auto',
         height: 'auto',
         transition: 'width 0.5s, height 0.5s',
+        overflow: 'hidden', // 确保图片不会溢出容器
       })
     }
   }, [imageDimensions])
+
+  // 渲染图片部分，依据 disableImageLink 判断是否将图片包裹在 <Link> 中
+  const renderImage = () => {
+    const imgElement = (
+      <img
+        src={bigImage}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+          showContent ? 'opacity-100' : 'opacity-0'
+        }`}
+        alt={modalContent?.title || '图片'}
+        onError={() => {
+          setShowColorLayer(false)
+          setShowContent(true)
+        }}
+      />
+    )
+    if (!disableImageLink && modalContent?.href) {
+      return <Link href={modalContent.href}>{imgElement}</Link>
+    } else {
+      return <div>{imgElement}</div>
+    }
+  }
 
   return (
     <Transition.Root show={showModal} as={Fragment}>
@@ -172,7 +204,8 @@ export default function Modal(props) {
         as='div'
         className='relative z-20'
         initialFocus={cancelButtonRef}
-        onClose={handleClose}>
+        onClose={handleClose}
+      >
         {/* 遮罩 */}
         <Transition.Child
           as={Fragment}
@@ -181,7 +214,8 @@ export default function Modal(props) {
           enterTo='opacity-100'
           leave='ease-in duration-200'
           leaveFrom='opacity-100'
-          leaveTo='opacity-0'>
+          leaveTo='opacity-0'
+        >
           <div
             style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
             className='fixed inset-0 glassmorphism transition-opacity'
@@ -197,23 +231,23 @@ export default function Modal(props) {
               enterTo='opacity-100 translate-y-0 scale-100'
               leave='ease-in duration-200'
               leaveFrom='opacity-100 translate-y-0 scale-100'
-              leaveTo='opacity-0 translate-y-4 scale-50'>
+              leaveTo='opacity-0 translate-y-4 scale-50'
+            >
               <Dialog.Panel
                 className='group relative transform overflow-hidden rounded-xl text-left shadow-xl transition-all'
-                style={containerStyle}>
+                style={containerStyle}
+              >
                 {/* 加载中的动画效果 */}
                 {loading && (
                   <div className='absolute right-0 bottom-0 m-4'>
-                    <ArrowPath
-                      className='w-10 h-10 animate-spin text-gray-200'
-                    />
+                    <ArrowPath className='w-10 h-10 animate-spin text-gray-200' />
                   </div>
                 )}
 
                 {/* 纯色层部分 */}
                 {showColorLayer && (
                   <div
-                    className="absolute inset-0 bg-gray-800 z-10 transition-opacity duration-500"
+                    className='absolute inset-0 bg-gray-800 z-10 transition-opacity duration-500'
                   ></div>
                 )}
 
@@ -222,38 +256,28 @@ export default function Modal(props) {
                   className='relative w-full h-full flex items-center justify-center overflow-hidden'
                   style={{ backgroundColor: '#333' }} // 深灰色背景
                 >
-                  {/* 当前图片 */}
-                  {!loading && (
-                    <img
-                      src={bigImage}
-                      className={`absolute w-full h-full object-contain transition-opacity duration-1000 ${
-                        showContent ? 'opacity-100' : 'opacity-0'
-                      }`}
-                      alt={modalContent?.title || '图片'}
-                      onError={() => {
-                        // 处理图片加载错误时的显示逻辑
-                        setShowColorLayer(false)
-                        setShowContent(true)
-                      }}
-                    />
-                  )}
+                  {renderImage()}
                 </div>
 
                 {/* 图片下方的文字和导航按钮 */}
                 <>
-                  <div className={`absolute bottom-0 left-0 m-4 z-20 transition-opacity duration-1000 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+                  <div
+                    className={`absolute bottom-0 left-0 m-4 z-20 transition-opacity duration-1000 ${
+                      showContent ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
                     <div className='flex'>
                       <h2
-                        style={{ textShadow: '0.1em 0.1em 0.2em black' }}
-                        className='text-xl md:text-2xl text-white mb-4 px-2 py-1 rounded-lg'>
+                        className='text-xl md:text-2xl text-white px-2 py-1 rounded-lg'
+                        style={{ textShadow: '1px 1px 2px black' }} // 添加黑色阴影
+                      >
                         {modalContent?.title}
                       </h2>
                     </div>
                     <div
-                      style={{ textShadow: '0.1em 0.1em 0.2em black' }}
-                      className={
-                        'text-sm md:text-base line-clamp-3 md:line-clamp-none overflow-hidden cursor-pointer text-gray-50 rounded-lg m-2'
-                      }>
+                      className='text-sm md:text-base overflow-hidden cursor-pointer text-white rounded-lg m-2'
+                      style={{ textShadow: '1px 1px 2px black' }} // 添加黑色阴影
+                    >
                       {modalContent?.summary}
                     </div>
 
@@ -261,7 +285,8 @@ export default function Modal(props) {
                       <div className='flex'>
                         <Link
                           href={`/category/${modalContent?.category}`}
-                          className='text-xs rounded-lg mt-3 px-2 py-1 bg-black bg-opacity-20 text-white hover:bg-blue-700 hover:text-white duration-200'>
+                          className='text-xs rounded-lg mt-2 px-2 py-1 bg-black bg-opacity-20 text-white hover:bg-blue-700 hover:text-white duration-200'
+                        >
                           {modalContent?.category}
                         </Link>
                       </div>
@@ -271,12 +296,14 @@ export default function Modal(props) {
                   {/* 导航按钮 */}
                   <div
                     onClick={prev}
-                    className='z-10 absolute left-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'>
+                    className='z-10 absolute left-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'
+                  >
                     <ChevronLeft className='cursor-pointer w-12 h-16 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
                   </div>
                   <div
                     onClick={next}
-                    className='z-10 absolute right-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'>
+                    className='z-10 absolute right-2 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 duration-200 transition-opacity cursor-pointer'
+                  >
                     <ChevronRight className='cursor-pointer w-12 h-16 hover:opacity-100 stroke-white stroke-1 scale-y-150' />
                   </div>
                 </>
